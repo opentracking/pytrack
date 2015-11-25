@@ -1,7 +1,6 @@
-Run the code like this:
+# Pytrack
+### Low Cost, Open Source Object Tracking on Raspberry Pi
 
-*python face_detect.py abba.png haarcascade_frontalface_default.xml*
+This repository contains work from the Open Tracking (CS Capstone 32) group, specifically Pytrack.  Pytrack uses a Raspberry Pi, camera, and DC motors to easily and cheaply track faces.  
 
-If you want to understand how the code works, the details are here:
-
-https://realpython.com/blog/python/face-recognition-with-python/
+To run an example of facial detection, run `python src/face_detect.py cascade/haarcascade_frontalface_default.xml`.  
