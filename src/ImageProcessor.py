@@ -8,7 +8,7 @@ class ImageProcessor:
 	def __init__(self, haarCascade):
 		self.haarCascade = haarCascade
 	
-	def findFaces():
+	def findFaces(self):
 		# Create the haar cascade
 		faceCascade = cv2.CascadeClassifier(self.haarCascade)
 
