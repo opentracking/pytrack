@@ -16,22 +16,22 @@ class ImageProcessor:
 		old_y = 0
 
 		camera = PiCamera()
-		camera.resolution = (640, 480)
+		camera.resolution = (320, 240)
 		camera.framerate = 32
-		rawCapture = PiRGBArray(camera, size=(640, 480))
+		rawCapture = PiRGBArray(camera, size=(320, 240))
 
 		time.sleep(0.1)
 
 		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 			# Resize and flip frame for better performance
 	
-			#small_frame = frame.array
-			small_frame = cv2.resize(cv2.flip(frame.array, 1), (320, 240))
+			frame = cv2.flip(frame.array, 1)
+			#frame = cv2.resize(cv2.flip(frame.array, 1), (320, 240))
 
-			gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+			frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	
 			faces = faceCascade.detectMultiScale(
-				gray,
+				frame,
 				scaleFactor = 1.3, 
 				minNeighbors = 5,
 				minSize = (15, 15),
@@ -44,10 +44,10 @@ class ImageProcessor:
 				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
 				old_x = x
 				old_y = y
-				cv2.rectangle(small_frame, (x, y), (x+w, y+h), (0,255,0), 2)
+				cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 			# Display the resulting frame
-			cv2.imshow('Video', small_frame)
+			cv2.imshow('Video', frame)
 
 			rawCapture.truncate(0)
 
