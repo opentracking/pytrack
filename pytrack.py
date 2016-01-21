@@ -28,10 +28,10 @@ class ImageProcessor:
 			frame = cv2.flip(frame.array, 1)
 			#frame = cv2.resize(cv2.flip(frame.array, 1), (320, 240))
 
-			frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+			greyscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	
 			faces = faceCascade.detectMultiScale(
-				frame,
+				greyscale_frame,
 				scaleFactor = 1.3, 
 				minNeighbors = 5,
 				minSize = (15, 15),
