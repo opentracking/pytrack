@@ -1,4 +1,5 @@
 from pytrack import ImageProcessor
+import sys
 
-improc = ImageProcessor("cascade/haarcascade_frontalface_default.xml")
+improc = ImageProcessor(sys.argv[1])
 improc.findObjects()

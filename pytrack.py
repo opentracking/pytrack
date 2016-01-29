@@ -39,12 +39,30 @@ class ImageProcessor:
 			)
 
 			# Draw a rectangle around the faces
-			for (x, y, w, h) in faces:
+			if len(faces) > 1:
+				closest_face = 0
+				min_x = 1000
+				min_y = 1000
+				for i, (x, y, w, h) in enumerate(faces):
+					if (x - old_x < min_x) and (y - old_y < min_y):
+						closest_face = i
+				x = faces[i][0]
+				y = faces[i][1]
+				w = faces[i][2]
+				h = faces[i][3]
+					
 				print "x-offset: {}, y-offset: {}".format(old_x - x, old_y - y)
 				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
 				old_x = x
 				old_y = y
 				cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
+			else:
+				for (x, y, w, h) in faces:
+					print "x-offset: {}, y-offset: {}".format(old_x - x, old_y - y)
+					# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
+					old_x = x
+					old_y = y
+					cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 			# Display the resulting frame
 			cv2.imshow('Video', frame)
