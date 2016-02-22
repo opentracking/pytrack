@@ -10,4 +10,4 @@ To run an example of facial detection, run `python test.py cascade/haarcascade_f
 check out the install script we have at https://github.com/opentracking/pytrack/install.sh and make sure you trust it! Then run the following command:
 This will use apt-get (to make sure python-opencv is installed), so it will need sudo permissions. It will then attempt to run our test program.
  
-wget -0 - https://github.com/opentracking/pytrack/install.sh
+`wget -0 - https://github.com/opentracking/pytrack/install.sh`
