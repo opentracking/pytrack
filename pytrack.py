@@ -5,9 +5,10 @@ from picamera.array import PiRGBArray
 import time
 
 class ImageProcessor:
-	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml'):
+	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml',gpioX=18,gpioY=23):
 		self.haarCascade = cv2.CascadeClassifier(cascadePath)
-	
+		self.gpioX = gpioX
+
 	def findObjects(self):
 		oldX = 0
 		oldY = 0
@@ -57,6 +58,8 @@ class ImageProcessor:
 				oldX = x
 				oldY = y
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
+
+			# Send output to motors
 
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
