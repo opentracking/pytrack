@@ -1,13 +1,17 @@
-import cv2
 import sys
+sys.path.append('/usr/local/lib/python2.7/site-packages/cv2.so')
+print sys.path
+import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 import time
+import RPi.GPIO as GPIO
+from motor import Motor
 
 class ImageProcessor:
 	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml',gpioX=18,gpioY=23):
 		self.haarCascade = cv2.CascadeClassifier(cascadePath)
-		self.gpioX = gpioX
+		self.motor = Motor(320,240,53.50,41.41,gpioX,gpioY)
 
 	def findObjects(self):
 		oldX = 0
@@ -60,6 +64,8 @@ class ImageProcessor:
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 			# Send output to motors
+			if (x - oldX) >= 6 or (x - oldX) <= -6:
+				self.motor.update(oldX - x,oldY - y)
 
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
