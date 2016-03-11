@@ -1,6 +1,6 @@
 setup.cfg
 setup.py
-pytrack/__init__.py
+Pytrack/__init__.py
 cascade/haarcascade_eye_tree_eyeglasses.xml
 cascade/haarcascade_frontalface_alt_tree.xml
 cascade/haarcascade_licence_plate_rus_16stages.xml
