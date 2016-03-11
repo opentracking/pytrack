@@ -1,3 +1,5 @@
+setup.cfg
+setup.py
 pytrack/__init__.py
 cascade/haarcascade_eye_tree_eyeglasses.xml
 cascade/haarcascade_frontalface_alt_tree.xml
