@@ -1,7 +1,7 @@
 from distutils.core import setup
 setup(
-	name = 'pytrack',
-	packages = ['pytrack'],
+	name = 'Pytrack',
+	packages = ['Pytrack'],
 	version = '0.0.3',
 	description = 'face tracking software for use with the raspberry pi.',
 	author = 'Ben Brook, Justin Brown, Ernesto Perez',
