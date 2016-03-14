@@ -10,7 +10,7 @@ from motor import Motor
 
 class ImageProcessor:
 	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml',gpioX=18,gpioY=23):
-		self.haarCascade = cv2.CascadeClassifier(cascadePath)
+		self.haarCascade = cv2. CascadeClassifier(cascadePath)
 		self.motor = Motor(320,240,53.50,41.41,gpioX,gpioY)
 
 	def findObjects(self):

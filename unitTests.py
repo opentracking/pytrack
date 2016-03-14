@@ -39,31 +39,33 @@ def multipleFaces():
 	oldY = imageHeight/2
 
 	if len(faces) > 1:
-         	closestFace = 0
-                minX = 1000
-                minY = 1000
-                for i, (x, y, w, h) in enumerate(faces):
-                        if (x - oldX < minX) and (y - oldY < minY):
-                                closestFace = i
-                x = faces[closestFace][0]
-                y = faces[closestFace][1]
-                w = faces[closestFace][2]
-         	h = faces[closestFace][3]
+     	closestFace = 0
+        minX = 1000
+        minY = 1000
+        for i, (x, y, w, h) in enumerate(faces):
+            if (x - oldX < minX) and (y - oldY < minY):
+                    closestFace = i
+        x = faces[closestFace][0]
+        y = faces[closestFace][1]
+        w = faces[closestFace][2]
+     	h = faces[closestFace][3]
 
-        elif len(faces) == 1:
-                x = faces[0][0]
-                y = faces[0][1]
-                w = faces[0][2]
-                h = faces[0][3]
-        else:
-                x = -1
-                y = -1
-                w = -1
-	    	h = -1
+    elif len(faces) == 1:
+        x = faces[0][0]
+        y = faces[0][1]
+        w = faces[0][2]
+        h = faces[0][3]
+    else:
+        x = -1
+        y = -1
+        w = -1
+		h = -1
 
 	print x
-
-	return False
+	if x > (.75 * 1296) and x < (1.25 * 1296):
+		return True
+	else:
+		return False
 
 # Run tests
 if frameOffset():

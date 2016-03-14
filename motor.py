@@ -9,10 +9,10 @@ class Motor(object):
         fov_y : degrees of vertical camera perspective
         """
 
-	   GPIO.setmode(GPIO.BCM)
+	    GPIO.setmode(GPIO.BCM)
         GPIO.setup(gpioX,GPIO.OUT)
         self.pwm = GPIO.PWM(gpioX,50)
-	self.current = 6.75
+	    self.current = 6.75
 
         self.pixels_x = float(pixels_x)
         self.pixels_y = float(pixels_y)
