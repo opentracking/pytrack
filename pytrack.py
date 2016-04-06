@@ -1,6 +1,5 @@
 import sys
 sys.path.append('/usr/local/lib/python2.7/site-packages/cv2.so')
-print sys.path
 import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
@@ -23,6 +22,7 @@ class ImageProcessor:
 		rawCapture = PiRGBArray(camera, size=(320, 240))
 
 		time.sleep(0.1)
+		loop = 0
 
 		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 			
@@ -64,14 +64,17 @@ class ImageProcessor:
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 			# Send output to motors
-			if (x - oldX) >= 6 or (x - oldX) <= -6:
-				self.motor.update(oldX - x,oldY - y)
+			#if (x - oldX) >= 6 or (x - oldX) <= -6:
+			self.motor.update(oldX - x,oldY - y)
+			time.sleep(0.06)			
 
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
 
 			rawCapture.truncate(0)
-
+			
+			#time.sleep(0.25)
+			
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				break
 
