@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import time
 
 class Motor(object):
     def __init__(self, pixels_x, pixels_y, fov_x, fov_y, gpioX=18,gpioY=23):
@@ -13,6 +14,7 @@ class Motor(object):
         GPIO.setup(gpioX,GPIO.OUT)
         self.pwm = GPIO.PWM(gpioX,50)
 	self.current = 6.75
+	#self.pwm.start(self.current)
 	self.dir = 1
 
         self.pixels_x = float(pixels_x)
@@ -27,29 +29,30 @@ class Motor(object):
         #     by deg_x and deg_y degrees respectively.
         #     """
     def move(self, deg_x,deg_y):
-	print "deg_x: %s, deg_y: %s" % (deg_x,deg_y)
+	#print "deg_x: %s, deg_y: %s" % (deg_x,deg_y)
 	# TO FIX
 	# Need to change degrees to 2-11.5 
-	#new_pos = self.current + 1
+	new_pos = self.current - (deg_x / (9.5*1.5))
 	#print "new_pos: %s" % new_pos
-	#if new_pos < 2:
-	#	new_pos = 2
-	#if new_pos > 11.5:
-	#	new_pos = 11.5
-	#self.pwm.start(new_pos)
-	#self.current = new_pos
-	
-	if self.dir:
-		self.current += 1
-	if self.current > 11.5:
-		self.dir = 0
-		self.current -= 1
-	if not self.dir:
-		self.current -= 1
-	if self.current < 2:
-		self.dir = 1
-		self.current += 1
-	self.pwm.start(self.current)
+	if new_pos < 2:
+		new_pos = 2
+	if new_pos > 11.5:
+		new_pos = 11.5
+	self.pwm.start(new_pos)
+	self.current = new_pos
+	time.sleep(0.06)	
+
+	#if self.dir:
+	#	self.current += 1
+	#if self.current > 11.5:
+	#	self.dir = 0
+	#	self.current -= 1
+	#if not self.dir:
+	#	self.current -= 1
+	#if self.current < 2:
+	#	self.dir = 1
+	#	self.current += 1
+	#self.pwm.start(self.current)
 
     def update(self, dx, dy):
         """

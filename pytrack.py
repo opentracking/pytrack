@@ -57,16 +57,18 @@ class ImageProcessor:
 
 
 			if x != -1:
-				print "x-offset: {}, y-offset: {}".format(oldX - x, oldY - y)
+				#print "x-offset: {}, y-offset: {}".format(oldX - x, oldY - y)
+				#print "old x: %s, old y: %s" % (oldX,oldY)
 				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
+				# Send output to motors
+				if abs(x - oldX) >= 6:
+					self.motor.update(oldX - x,oldY - y)
+					#time.sleep(0.06)
 				oldX = x
 				oldY = y
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
-			# Send output to motors
-			#if (x - oldX) >= 6 or (x - oldX) <= -6:
-			self.motor.update(oldX - x,oldY - y)
-			time.sleep(0.06)			
+						
 
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
@@ -81,9 +83,9 @@ class ImageProcessor:
 	def analyzeFrame(self,frame):
 		# Resize and flip frame for better performance
 		if type(frame) is str:
-			flippedFrame = cv2.flip(cv2.imread(frame),1)
+			flippedFrame = cv2.flip(cv2.imread(frame),0)
 		else:
-			flippedFrame = cv2.flip(frame.array, 1)
+			flippedFrame = cv2.flip(frame.array, 0)
 
 		greyscaleFrame = cv2.cvtColor(flippedFrame, cv2.COLOR_BGR2GRAY)
 

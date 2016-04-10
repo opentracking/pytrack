@@ -1,18 +1,21 @@
-import RPi.GPIO as GPIO
+#!/usr/bin/env python
 import time
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(18,GPIO.OUT)
-pwm = GPIO.PWM(18,50)
-pwm.start(2)
-
-# This seems to be a good value for a 10% change in duty cycle
-delay = 0.06
+import os
+ 
+STEP = 10
+DELAY = 0.06
+ 
+min = 50
+max = 220
+# middle is approx = 140
+def pwm(pin, angle):
+	print "servo[" + str(pin) + "][" + str(angle) + "]"
+	cmd = "echo " + str(pin) + "=" + str(angle) + " > /dev/servoblaster"
+	os.system(cmd)
+	time.sleep(DELAY)
+ 
 while True:
-	for i in range(2,11):
-		time.sleep(delay)
-		pwm.start(i)
-	for i in reversed(range(2,11)):
-		time.sleep(delay)
-		pwm.start(i)
-		
+	for j in range(min, max, STEP):
+			pwm(0,j)
+	for j in range(max, min, (STEP*-1)):
+			pwm(0,j)
