@@ -13,15 +13,14 @@ class ImageProcessor:
 		self.motor = Motor(320,240,53.50,41.41,gpioX,gpioY)
 
 	def findObjects(self):
-		oldX = 0
-		oldY = 0
+		center_pos = (160,140)
 
 		camera = PiCamera()
 		camera.resolution = (320, 240)
 		camera.framerate = 32
 		rawCapture = PiRGBArray(camera, size=(320, 240))
 
-		time.sleep(0.1)
+		time.sleep(1)
 		loop = 0
 
 		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -57,18 +56,27 @@ class ImageProcessor:
 
 
 			if x != -1:
-				#print "x-offset: {}, y-offset: {}".format(oldX - x, oldY - y)
-				#print "old x: %s, old y: %s" % (oldX,oldY)
-				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
-				# Send output to motors
-				if abs(x - oldX) >= 6:
-					self.motor.update(oldX - x,oldY - y)
-					#time.sleep(0.06)
-				oldX = x
-				oldY = y
+				face_pos = (w/2+x,h/2+y)
+				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
+
+				# Left movement
+				if face_pos[0] > 180:
+					self.motor.update(5,0)
+				elif face_pos[0] > 190:
+					self.motor.update(7,0)
+				elif face_pos[0] > 200:
+					self.motor.update(9,0)
+		
+				# Right movement
+				if face_pos[0] < 140:
+					self.motor.update(-5,0)
+				elif face_pos[0] < 130:
+					self.motor.update(-7,0)
+				elif face_pos[0] < 120:
+					self.motor.update(-9,0)
+
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
-						
 
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
