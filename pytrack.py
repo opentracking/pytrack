@@ -61,19 +61,35 @@ class ImageProcessor:
 
 				# Left movement
 				if face_pos[0] > 180:
-					self.motor.update(5,0)
+					self.motor.update_x(5)
 				elif face_pos[0] > 190:
-					self.motor.update(7,0)
+					self.motor.update_x(7)
 				elif face_pos[0] > 200:
-					self.motor.update(9,0)
+					self.motor.update_x(9)
 		
 				# Right movement
 				if face_pos[0] < 140:
-					self.motor.update(-5,0)
+					self.motor.update_x(-5)
 				elif face_pos[0] < 130:
-					self.motor.update(-7,0)
+					self.motor.update_x(-7)
 				elif face_pos[0] < 120:
-					self.motor.update(-9,0)
+					self.motor.update_x(-9)
+
+				# Up movement
+				if face_pos[1] > 180:
+					self.motor.update_y(5)
+				elif face_pos[1] > 190:
+					self.motor.update_y(7)
+				elif face_pos[1] > 200:
+					self.motor.update_y(9)
+		
+				# Down movement
+				if face_pos[1] < 140:
+					self.motor.update_y(-5)
+				elif face_pos[1] < 130:
+					self.motor.update_y(-7)
+				elif face_pos[1] < 120:
+					self.motor.update_y(-9)
 
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
