@@ -20,6 +20,8 @@ class ImageProcessor:
 		camera.framerate = 32
 		rawCapture = PiRGBArray(camera, size=(320, 240))
 
+		old_face = (0,0)
+
 		time.sleep(1)
 		loop = 0
 
@@ -35,7 +37,7 @@ class ImageProcessor:
 				minX = 1000
 				minY = 1000
 				for i, (x, y, w, h) in enumerate(faces):
-					if (x - oldX < minX) and (y - oldY < minY):
+					if (x - old_face[0] < minX) and (y - old_face[1] < minY):
 						closestFace = i
 				x = faces[closestFace][0]
 				y = faces[closestFace][1]
@@ -57,39 +59,44 @@ class ImageProcessor:
 
 			if x != -1:
 				face_pos = (w/2+x,h/2+y)
+				old_face = face_pos
 				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
+
+				sm = 5
+				mm = 7
+				lm = 15
 
 				# Left movement
 				if face_pos[0] > 180:
-					self.motor.update_x(5)
+					self.motor.update_x(sm)
 				elif face_pos[0] > 190:
-					self.motor.update_x(7)
+					self.motor.update_x(mm)
 				elif face_pos[0] > 200:
-					self.motor.update_x(9)
+					self.motor.update_x(lm)
 		
 				# Right movement
 				if face_pos[0] < 140:
-					self.motor.update_x(-5)
+					self.motor.update_x(-sm)
 				elif face_pos[0] < 130:
-					self.motor.update_x(-7)
+					self.motor.update_x(-mm)
 				elif face_pos[0] < 120:
-					self.motor.update_x(-9)
+					self.motor.update_x(-lm)
 
-				# Up movement
-				if face_pos[1] > 180:
-					self.motor.update_y(5)
-				elif face_pos[1] > 190:
-					self.motor.update_y(7)
-				elif face_pos[1] > 200:
-					self.motor.update_y(9)
-		
 				# Down movement
-				if face_pos[1] < 140:
-					self.motor.update_y(-5)
-				elif face_pos[1] < 130:
-					self.motor.update_y(-7)
-				elif face_pos[1] < 120:
-					self.motor.update_y(-9)
+				if face_pos[1] > 140:
+					self.motor.update_y(sm)
+				elif face_pos[1] > 150:
+					self.motor.update_y(mm)
+				elif face_pos[1] > 160:
+					self.motor.update_y(lm)
+		
+				# Up movement
+				if face_pos[1] < 100:
+					self.motor.update_y(-sm)
+				elif face_pos[1] < 90:
+					self.motor.update_y(-mm)
+				elif face_pos[1] < 80:
+					self.motor.update_y(-lm)
 
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
