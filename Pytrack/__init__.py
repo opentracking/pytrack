@@ -5,15 +5,13 @@ from picamera.array import PiRGBArray
 import time
 
 class ImageProcessor:
-	def __init__(self, haarCascade):
-		self.haarCascade = haarCascade
-	
-	def findObjects(self):
-		# Create the haar cascade
-		faceCascade = cv2.CascadeClassifier(self.haarCascade)
+	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml',gpioX=18,gpioY=23):
+		self.haarCascade = cv2.CascadeClassifier(cascadePath)
+		self.gpioX = gpioX
 
-		old_x = 0
-		old_y = 0
+	def findObjects(self):
+		oldX = 0
+		oldY = 0
 
 		camera = PiCamera()
 		camera.resolution = (320, 240)
@@ -23,51 +21,72 @@ class ImageProcessor:
 		time.sleep(0.1)
 
 		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-			# Resize and flip frame for better performance
-	
-			frame = cv2.flip(frame.array, 1)
-			#frame = cv2.resize(cv2.flip(frame.array, 1), (320, 240))
-
-			greyscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	
-			faces = faceCascade.detectMultiScale(
-				greyscale_frame,
-				scaleFactor = 1.3, 
-				minNeighbors = 5,
-				minSize = (15, 15),
-				flags = cv2.CASCADE_SCALE_IMAGE
-			)
+			
+			analyzedData = self.analyzeFrame(frame)
+			faces = analyzedData[0]
+			flippedFrame = analyzedData[1]
 
 			# Draw a rectangle around the faces
 			if len(faces) > 1:
-				closest_face = 0
-				min_x = 1000
-				min_y = 1000
+				closestFace = 0
+				minX = 1000
+				minY = 1000
 				for i, (x, y, w, h) in enumerate(faces):
-					if (x - old_x < min_x) and (y - old_y < min_y):
-						closest_face = i
-				x = faces[i][0]
-				y = faces[i][1]
-				w = faces[i][2]
-				h = faces[i][3]
+					if (x - oldX < minX) and (y - oldY < minY):
+						closestFace = i
+				x = faces[closestFace][0]
+				y = faces[closestFace][1]
+				w = faces[closestFace][2]
+				h = faces[closestFace][3]
 					
-				print "x-offset: {}, y-offset: {}".format(old_x - x, old_y - y)
-				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
-				old_x = x
-				old_y = y
-				cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
+			elif len(faces) == 1:
+				x = faces[0][0]
+				y = faces[0][1]
+				w = faces[0][2]
+				h = faces[0][3]
 			else:
-				for (x, y, w, h) in faces:
-					print "x-offset: {}, y-offset: {}".format(old_x - x, old_y - y)
-					# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
-					old_x = x
-					old_y = y
-					cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
+				x = -1
+				y = -1
+				w = -1
+				h = -1
+			
+
+
+			if x != -1:
+				print "x-offset: {}, y-offset: {}".format(oldX - x, oldY - y)
+				# print "x: {}, y: {}, w: {}, h: {}".format(x, y, w, h)
+				oldX = x
+				oldY = y
+				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
+
+			# Send output to motors
 
 			# Display the resulting frame
-			cv2.imshow('Video', frame)
+			cv2.imshow('Video', flippedFrame)
 
 			rawCapture.truncate(0)
 
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				break
+
+	def analyzeFrame(self,frame):
+		# Resize and flip frame for better performance
+		if type(frame) is str:
+			flippedFrame = cv2.flip(cv2.imread(frame),1)
+		else:
+			flippedFrame = cv2.flip(frame.array, 1)
+
+		greyscaleFrame = cv2.cvtColor(flippedFrame, cv2.COLOR_BGR2GRAY)
+
+		faces = self.haarCascade.detectMultiScale(
+			greyscaleFrame,
+			scaleFactor = 1.3, 
+			minNeighbors = 5,
+			minSize = (15, 15),
+			flags = cv2.CASCADE_SCALE_IMAGE
+		)
+
+		
+
+		return (faces,flippedFrame)
+				
