@@ -1,7 +1,9 @@
-
+import RPi.GPIO as GPIO
+import time
+import os
 
 class Motor(object):
-    def __init__(self, pixels_x, pixels_y, fov_x, fov_y):
+    def __init__(self):
         """
         pixels_x : number of horizontal pixels of image capture
         pixels_y : number of vertical pixels of image capture
@@ -9,33 +11,52 @@ class Motor(object):
         fov_y : degrees of vertical camera perspective
         """
 
-        self.pixels_x = float(pixels_x)
-        self.pixels_y = float(pixels_y)
-        self.fov_x = float(fov_x)
-        self.fov_y = float(fov_y)
-        
-        # user implements this function
-        # self.move(deg_x, deg_y)
-        #     """
-        #     Rotate the horizontal and vertical motors to rotate orientation
-        #     by deg_x and deg_y degrees respectively.
-        #     """
-        self.move = lambda dx, dy: None
+        self.delay = 0.06
+        self.current_x = 135
+        self.current_y = 90
 
-    def update(self, dx, dy):
+        self.x_pin = 0
+        self.y_pin = 1
+
+        # Manually set the position to start
+        self.pwm(self.x_pin, self.current_x, self.delay)
+        self.pwm(self.y_pin, self.current_y, self.delay)
+
+    def update_x(self, dx):
         """
         dx : horizontal pixels from image center
-        dy : vertical pixels from image center
 
-        Update the camera position by calculating the number of degrees the
-        camera needs to be moved.
+        Update the servo horizontal position
         """
 
-        deg_x = float(dx) * self.fov_x / self.pixels_x
-        deg_y = float(dy) * self.fov_y / self.pixels_y
+        movement_x = self.current_x + dx
+        
+        self.pwm(self.x_pin, movement_x, self.delay)
+        
+        self.current_x = movement_x
 
-        print "motor.move(%f, %f)" % (deg_x, deg_y)
+    def update_y(self, dy):
+        """
+        dy : vertical pixels from image center
 
-        self.move(deg_x, deg_y)
+        Update the servo vertical position
+        """
 
+        movement_y = self.current_y + dy
 
+        self.pwm(self.y_pin, movement_y, self.delay)
+
+        self.current_y = movement_y
+
+    def pwm(self,pin,offset,delay):
+        """
+        pin    : GPIO pin of servo
+        offset : Amount servo should move
+        delay  : Amount of time to wait for the servo to move
+
+        """
+        print("servo[" + str(pin) + "][" + str(offset) + "]")
+        cmd = "echo " + str(pin) + "=" + str(offset) + " > /dev/servoblaster"
+        os.system(cmd)
+        time.sleep(delay)
+	
