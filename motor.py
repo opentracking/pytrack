@@ -3,7 +3,7 @@ import time
 import os
 
 class Motor(object):
-    def __init__(self, pixels_x, pixels_y, fov_x, fov_y, gpioX=18,gpioY=23):
+    def __init__(self):
         """
         pixels_x : number of horizontal pixels of image capture
         pixels_y : number of vertical pixels of image capture
@@ -11,23 +11,16 @@ class Motor(object):
         fov_y : degrees of vertical camera perspective
         """
 
-	self.min = 50
-	self.max = 220
-	self.delay = 0.06
-	self.current_x = 135
-	self.current_y = 90
+        self.delay = 0.06
+        self.current_x = 135
+        self.current_y = 90
 
-	self.x_pin = 0
-	self.y_pin = 1
+        self.x_pin = 0
+        self.y_pin = 1
 
-        self.pixels_x = float(pixels_x)
-        self.pixels_y = float(pixels_y)
-        self.fov_x = float(fov_x)
-	self.fov_y = float(fov_y)
-
-	# Manually set the position to start
-	self.pwm(0,self.current_x,self.delay)
-	self.pwm(1,self.current_y,self.delay)
+        # Manually set the position to start
+        self.pwm(self.x_pin, self.current_x, self.delay)
+        self.pwm(self.y_pin, self.current_y, self.delay)
 
     def update_x(self, dx):
         """
@@ -36,11 +29,11 @@ class Motor(object):
         Update the servo horizontal position
         """
 
-	movement_x = self.current_x + dx
-	
-	self.pwm(self.x_pin,movement_x,self.delay)
-	
-	self.current_x = movement_x
+        movement_x = self.current_x + dx
+        
+        self.pwm(self.x_pin, movement_x, self.delay)
+        
+        self.current_x = movement_x
 
     def update_y(self, dy):
         """
@@ -49,22 +42,21 @@ class Motor(object):
         Update the servo vertical position
         """
 
-	movement_y = self.current_y + dy
+        movement_y = self.current_y + dy
 
-	self.pwm(self.y_pin,movement_y,self.delay)
+        self.pwm(self.y_pin, movement_y, self.delay)
 
-	self.current_y = movement_y
+        self.current_y = movement_y
 
     def pwm(self,pin,offset,delay):
-	"""
-	pin    : GPIO pin of servo
-	offset : Amount servo should move
-	delay  : Amount of time to wait for the servo to move
+        """
+        pin    : GPIO pin of servo
+        offset : Amount servo should move
+        delay  : Amount of time to wait for the servo to move
 
-	"""
-	print "servo[" + str(pin) + "][" + str(offset) + "]"
+        """
+        print("servo[" + str(pin) + "][" + str(offset) + "]")
         cmd = "echo " + str(pin) + "=" + str(offset) + " > /dev/servoblaster"
         os.system(cmd)
         time.sleep(delay)
-
 	
