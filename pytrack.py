@@ -8,9 +8,9 @@ import RPi.GPIO as GPIO
 from motor import Motor
 
 # servoblaster control signals
-SM = 5
-MM = 7
-LM = 15
+SM = 4
+MM = 6
+LM = 8
 
 class ImageProcessor:
 	"""
@@ -18,12 +18,13 @@ class ImageProcessor:
 	as well as sending control signals to servo motors.
 	"""
 		
-	def __init__(self, cascadePath='cascade/haarcascade_frontalface_default.xml'):
+	def __init__(self, frontal_face='cascade/haarcascade_frontalface_default.xml', profile_face='cascade/haarcascade_profileface.xml'):
 		"""
 		Initializes the Haar cascade with the given xml file path and creates a
 		motor object.
 		"""
-		self.haarCascade = cv2.CascadeClassifier(cascadePath)
+		self.frontal_classifier = cv2.CascadeClassifier(frontal_face)
+		self.profile_classifier = cv2.CascadeClassifier(profile_face)
 		self.motor = Motor()
 		
 		self.camera = PiCamera()
@@ -67,7 +68,7 @@ class ImageProcessor:
 		return (x, y, w, h)
 				
 				
-	def motorControl(self, sm, mm, lm):
+	def motorControl(self, face_pos, sm, mm, lm):
 		# Left movement
 		if face_pos[0] > 180:
 			self.motor.update_x(sm)
@@ -108,12 +109,16 @@ class ImageProcessor:
 		it.
 		"""
 
+		# Don't know where the face starts
+		prev_orientation = -1
+
 		for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
 			
 			# return a list of faces.
-			analyzedData = self.analyzeFrame(frame)
+			analyzedData = self.analyzeFrame(frame, prev_orientation)
 			faces = analyzedData[0]
 			flippedFrame = analyzedData[1]
+			prev_orientation = analyzedData[2]
 
 			# Draw a rectangle around the faces
 			(x, y, w, h) = self.reduceScene(faces)
@@ -125,7 +130,7 @@ class ImageProcessor:
 				self.old_face = face_pos
 				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
 
-				self.motorControl(SM, MM, LM)
+				self.motorControl(face_pos, SM, MM, LM)
 
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
@@ -133,7 +138,7 @@ class ImageProcessor:
 			# Display the resulting frame
 			cv2.imshow('Video', flippedFrame)
 
-			rawCapture.truncate(0)
+			self.rawCapture.truncate(0)
 			
 			#time.sleep(0.25)
 			
@@ -141,7 +146,7 @@ class ImageProcessor:
 				break
 
 				
-	def analyzeFrame(self,frame):
+	def analyzeFrame(self,frame,prev_orientation=-1):
 		"""
 		Takes a frame and first rotates based on the physical camera's orientation.
 		Converts the frame to greyscale and then uses the Haar cascade to get the
@@ -155,15 +160,50 @@ class ImageProcessor:
 
 		greyscaleFrame = cv2.cvtColor(flippedFrame, cv2.COLOR_BGR2GRAY)
 
-		faces = self.haarCascade.detectMultiScale(
-			greyscaleFrame,
-			scaleFactor = 1.3, 
-			minNeighbors = 5,
-			minSize = (15, 15),
-			flags = cv2.CASCADE_SCALE_IMAGE
-		)
+		found_face = False
 
+		# 0 for front, 1 for right side of face, 2 for left side, -1 for nothing
+		if not found_face and (prev_orientation == -1 or prev_orientation == 0):		
+			faces = self.frontal_classifier.detectMultiScale(
+				greyscaleFrame,
+				scaleFactor = 1.3, 
+				minNeighbors = 5,
+				minSize = (15, 15),
+				flags = cv2.CASCADE_SCALE_IMAGE
+			)
+			if len(faces):
+				prev_orientation = 0
+				found_face = True
+
+		if not found_face and (prev_orientation == -1 or prev_orientation == 1):
+			faces = self.profile_classifier.detectMultiScale(
+                                greyscaleFrame,
+                                scaleFactor = 1.3, 
+                                minNeighbors = 5,
+                                minSize = (15, 15),
+                                flags = cv2.CASCADE_SCALE_IMAGE
+                        )
+			if len(faces):
+				prev_orientation = 1
+				found_face = True
+
+		if not found_face and (prev_orientation == -1 or prev_orientation == 2):
+			cv2.flip(greyscaleFrame, 1, greyscaleFrame)
+			faces = self.profile_classifier.detectMultiScale(
+                                greyscaleFrame,
+                                scaleFactor = 1.3, 
+                                minNeighbors = 5,
+                                minSize = (15, 15),
+                                flags = cv2.CASCADE_SCALE_IMAGE
+                        )
+			if len(faces):
+				prev_orientation = 2
+				found_face = True
+
+		if not found_face:
+			faces = ()
+			prev_orientation = -1
 		
 
-		return (faces,flippedFrame)
+		return (faces,flippedFrame,prev_orientation)
 				
