@@ -6,6 +6,7 @@ from picamera.array import PiRGBArray
 import time
 import RPi.GPIO as GPIO
 from motor import Motor
+import external
 
 class ImageProcessor:
 	"""
@@ -136,7 +137,7 @@ class ImageProcessor:
 				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
 
 				self.motorControl(face_pos)
-
+				external.lockon()
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 
