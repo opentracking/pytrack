@@ -3,17 +3,21 @@ import time
 import os
 
 class Motor(object):
-	def __init__(self):
+	def __init__(self, delay=0.06, current_x=135, current_y=90, x_pin=0, y_pin=1, max_x=10, max_y=5):
 		"""
 		TO ADD
 		"""
 
-		self.delay = 0.06
-		self.current_x = 135
-		self.current_y = 90
+		self.delay = delay
+		self.current_x = current_x
+		self.current_y = current_y
 
-		self.x_pin = 0
-		self.y_pin = 1
+		self.x_pin = x_pin
+		self.y_pin = y_pin
+
+		self.max_x = max_x
+		self.max_y = max_y
+
 
 		# Manually set the position to start
 		self.pwm(self.x_pin, self.current_x, self.delay)
@@ -25,6 +29,9 @@ class Motor(object):
 
 		Update the servo horizontal position
 		"""
+
+		if abs(dx) > self.max_x:
+			dx = (-1 if dx < 0 else 1) * self.max_x
 
 		movement_x = self.current_x + dx
 		
@@ -38,6 +45,9 @@ class Motor(object):
 
 		Update the servo vertical position
 		"""
+
+		if abs(dy) > self.max_y:
+			dy = (-1 if dy < 0 else 1) * self.max_y
 
 		movement_y = self.current_y + dy
 
