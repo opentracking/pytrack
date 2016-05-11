@@ -199,6 +199,9 @@ class ImageProcessor:
 			if len(faces):
 				prev_orientation = 2
 				found_face = True
+				faces[0][0] = 320 - faces[0][0]
+				faces[0][2] = -faces[0][2]
+				
 
 		if not found_face:
 			faces = ()
@@ -206,4 +209,3 @@ class ImageProcessor:
 		
 
 		return (faces,flippedFrame,prev_orientation)
-				
