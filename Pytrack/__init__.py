@@ -6,11 +6,7 @@ from picamera.array import PiRGBArray
 import time
 import RPi.GPIO as GPIO
 from motor import Motor
-
-# servoblaster control signals
-SM = 4
-MM = 6
-LM = 8
+import external
 
 class ImageProcessor:
 	"""
@@ -18,19 +14,26 @@ class ImageProcessor:
 	as well as sending control signals to servo motors.
 	"""
 		
-	def __init__(self, frontal_face='cascade/haarcascade_frontalface_default.xml', profile_face='cascade/haarcascade_profileface.xml'):
+	def __init__(self, frontal_classifier, profile_classifier=None, initial_x=135, initial_y=90, x_norm=3, y_norm=3, max_x=10, max_y=5):
 		"""
 		Initializes the Haar cascade with the given xml file path and creates a
 		motor object.
 		"""
-		self.frontal_classifier = cv2.CascadeClassifier(frontal_face)
-		self.profile_classifier = cv2.CascadeClassifier(profile_face)
-		self.motor = Motor()
+		self.frontal_classifier = cv2.CascadeClassifier(frontal_classifier)
+		if profile_classifier:
+			self.profile_classifier = cv2.CascadeClassifier(profile_classifier)
+		else:
+			self.profile_classifier = None
+
+		self.motor = Motor(current_x=int(initial_x), current_y=int(initial_y), max_x=int(max_x), max_y=int(max_y))
 		
 		self.camera = PiCamera()
 		self.camera.resolution = (320, 240)
 		self.camera.framerate = 32
 		self.rawCapture = PiRGBArray(self.camera, size=(320, 240))
+
+		self.x_norm = x_norm
+		self.y_norm = y_norm
 
 		# variable used to remember the last known face due to frames in
 		# which the tracked object was not detected.
@@ -68,38 +71,41 @@ class ImageProcessor:
 		return (x, y, w, h)
 				
 				
-	def motorControl(self, face_pos, sm, mm, lm):
+	def motorControl(self, face_pos):
+		x_norm = self.x_norm
+		y_norm = self.y_norm
+ 
 		# Left movement
 		if face_pos[0] > 180:
-			self.motor.update_x(sm)
+			self.motor.update_x((face_pos[0]-180)/x_norm)
 		elif face_pos[0] > 190:
-			self.motor.update_x(mm)
+			self.motor.update_x((face_pos[0]-190)/x_norm)
 		elif face_pos[0] > 200:
-			self.motor.update_x(lm)
+			self.motor.update_x((face_pos[0]-200)/x_norm)
 
 		# Right movement
 		if face_pos[0] < 140:
-			self.motor.update_x(-sm)
+			self.motor.update_x(-(140-face_pos[0])/x_norm)
 		elif face_pos[0] < 130:
-			self.motor.update_x(-mm)
+			self.motor.update_x(-(130-face_pos[0])/x_norm)
 		elif face_pos[0] < 120:
-			self.motor.update_x(-lm)
+			self.motor.update_x(-(120-face_pos[0])/x_norm)
 
 		# Down movement
 		if face_pos[1] > 140:
-			self.motor.update_y(sm)
+			self.motor.update_y((face_pos[1]-140)/y_norm)
 		elif face_pos[1] > 150:
-			self.motor.update_y(mm)
+			self.motor.update_y((face_pos[1]-150)/y_norm)
 		elif face_pos[1] > 160:
-			self.motor.update_y(lm)
+			self.motor.update_y((face_pos[1]-160)/y_norm)
 
 		# Up movement
 		if face_pos[1] < 100:
-			self.motor.update_y(-sm)
+			self.motor.update_y(-(100-face_pos[1])/y_norm)
 		elif face_pos[1] < 90:
-			self.motor.update_y(-mm)
+			self.motor.update_y(-(90-face_pos[1])/y_norm)
 		elif face_pos[1] < 80:
-			self.motor.update_y(-lm)
+			self.motor.update_y(-(80-face_pos[1])/y_norm)
 					
 					
 	def findObjects(self):
@@ -130,8 +136,8 @@ class ImageProcessor:
 				self.old_face = face_pos
 				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
 
-				self.motorControl(face_pos, SM, MM, LM)
-
+				self.motorControl(face_pos)
+				external.lockon()
 				cv2.rectangle(flippedFrame, (x, y), (x+w, y+h), (0,255,0), 2)
 
 
@@ -175,30 +181,35 @@ class ImageProcessor:
 				prev_orientation = 0
 				found_face = True
 
-		if not found_face and (prev_orientation == -1 or prev_orientation == 1):
-			faces = self.profile_classifier.detectMultiScale(
-                                greyscaleFrame,
-                                scaleFactor = 1.3, 
-                                minNeighbors = 5,
-                                minSize = (15, 15),
-                                flags = cv2.CASCADE_SCALE_IMAGE
-                        )
-			if len(faces):
-				prev_orientation = 1
-				found_face = True
+		if self.profile_classifier:
 
-		if not found_face and (prev_orientation == -1 or prev_orientation == 2):
-			cv2.flip(greyscaleFrame, 1, greyscaleFrame)
-			faces = self.profile_classifier.detectMultiScale(
-                                greyscaleFrame,
-                                scaleFactor = 1.3, 
-                                minNeighbors = 5,
-                                minSize = (15, 15),
-                                flags = cv2.CASCADE_SCALE_IMAGE
-                        )
-			if len(faces):
-				prev_orientation = 2
-				found_face = True
+			if not found_face and (prev_orientation == -1 or prev_orientation == 1):
+				faces = self.profile_classifier.detectMultiScale(
+                        	        greyscaleFrame,
+                        	        scaleFactor = 1.3, 
+                        	        minNeighbors = 5,
+                        	        minSize = (15, 15),
+                        	        flags = cv2.CASCADE_SCALE_IMAGE
+                       		)
+				if len(faces):
+					prev_orientation = 1
+					found_face = True
+
+			if not found_face and (prev_orientation == -1 or prev_orientation == 2):
+				cv2.flip(greyscaleFrame, 1, greyscaleFrame)
+				faces = self.profile_classifier.detectMultiScale(
+                                	greyscaleFrame,
+                                	scaleFactor = 1.3, 
+                                	minNeighbors = 5,
+                                	minSize = (15, 15),
+                                	flags = cv2.CASCADE_SCALE_IMAGE
+                        	)
+				if len(faces):
+					prev_orientation = 2
+					found_face = True
+					faces[0][0] = 320 - faces[0][0]
+					faces[0][2] = -faces[0][2]
+				
 
 		if not found_face:
 			faces = ()
@@ -206,4 +217,3 @@ class ImageProcessor:
 		
 
 		return (faces,flippedFrame,prev_orientation)
-				
