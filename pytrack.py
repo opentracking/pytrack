@@ -7,6 +7,7 @@ import time
 import RPi.GPIO as GPIO
 from motor import Motor
 import external
+from math import sqrt
 
 class ImageProcessor:
 	"""
@@ -34,6 +35,9 @@ class ImageProcessor:
 
 		self.x_norm = x_norm
 		self.y_norm = y_norm
+
+		self.found_face = 0
+		self.old_box = (0,0,0,0)
 
 		# variable used to remember the last known face due to frames in
 		# which the tracked object was not detected.
@@ -128,12 +132,16 @@ class ImageProcessor:
 
 			# Draw a rectangle around the faces
 			(x, y, w, h) = self.reduceScene(faces)
-
+			
 			# if a face was detected then print the location
 			# and update motor(s)
 			if x != -1:
-				face_pos = (w/2+x,h/2+y)
-				self.old_face = face_pos
+				if x+h/2 > 230 or x+h/2 < 70:
+					face_pos = self.old_face
+				else:
+					face_pos = (w/2+x,h/2+y)
+					self.old_face = face_pos
+					self.old_box = (x,y,w,h)
 				print "Center of face: (%s,%s)" % (face_pos[0],face_pos[1])
 
 				self.motorControl(face_pos)
